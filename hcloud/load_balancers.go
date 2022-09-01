@@ -149,7 +149,14 @@ func (l *loadBalancers) EnsureLoadBalancer(
 	}
 	reload = reload || servicesChanged
 
-	targetsChanged, err := l.lbOps.ReconcileHCLBTargets(ctx, lb, svc, nodes)
+	filteredNodes := make([]*corev1.Node, 0)
+	for _, node := range nodes {
+		if node.Labels[string(annotation.LBNodeIsRootServer)] == "true" {
+			continue
+		}
+		filteredNodes = append(filteredNodes, node)
+	}
+	targetsChanged, err := l.lbOps.ReconcileHCLBTargets(ctx, lb, svc, filteredNodes)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -263,9 +270,19 @@ func (l *loadBalancers) UpdateLoadBalancer(
 	if _, err = l.lbOps.ReconcileHCLB(ctx, lb, svc); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	if _, err = l.lbOps.ReconcileHCLBTargets(ctx, lb, svc, nodes); err != nil {
+
+	filteredNodes := make([]*corev1.Node, 0)
+	for _, node := range nodes {
+		if node.Labels[string(annotation.LBNodeIsRootServer)] == "true" {
+			continue
+		}
+		filteredNodes = append(filteredNodes, node)
+	}
+
+	if _, err = l.lbOps.ReconcileHCLBTargets(ctx, lb, svc, filteredNodes); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
+
 	if _, err = l.lbOps.ReconcileHCLBServices(ctx, lb, svc); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
