@@ -195,6 +195,8 @@ const (
 	// LBSvcHealthCheckHTTPStatusCodes is a comma separated list of HTTP status
 	// codes which we expect.
 	LBSvcHealthCheckHTTPStatusCodes Name = "load-balancer.hetzner.cloud/http-status-codes"
+
+	LBNodeIsRootServer Name = "instance.hetzner.cloud/is-root-server"
 )
 
 // LBToService sets the relevant annotations on svc to their respective values
